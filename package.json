@@ -1,0 +1,26 @@
+{
+  "name": "pcache",
+  "version": "0.1.0",
+  "description": "A files/directories caching command line tool",
+  "main": "index.js",
+  "scripts": {
+    "test": "./node_modules/.bin/mocha dist/test/ --recursive",
+    "prepublish": "cd src && ../node_modules/.bin/tsc",
+    "pretest": "cd src && ../node_modules/.bin/tsc"
+  },
+  "keywords": [
+    "directory",
+    "cache",
+    "cli",
+    "command"
+  ],
+  "author": "Matias Surdi <matias@surdi.net>",
+  "license": "BSD",
+  "dependencies": {
+    "commander": "^2.8.1",
+    "ncp": "^2.0.0",
+    "source-map-support": "^0.2.10",
+    "typescript": "^1.5.0-alpha",
+    "underscore": "^1.8.3"
+  }
+}
