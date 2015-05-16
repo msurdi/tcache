@@ -58,7 +58,7 @@ function main() {
         }
     });
 
-    function run(command, cb?:(error:Error, stdout:Buffer, stderr:Buffer) =>void) {
+    function run(command, cb?:(code:number) =>void) {
         console.log('Running command');
         let options = {
             env: process.env,
@@ -67,7 +67,7 @@ function main() {
         let p = child_process.spawn(process.env['SHELL'], ['-c', command], options);
         p.stdout.pipe(process.stdout);
         p.stderr.pipe(process.stderr);
-        p.on('exit', afterRun);
+        p.on('exit', cb);
         // Wait forever for child process
         setInterval(()=> {
             // Maybe implement a timeout feature and kill the subprocess?
@@ -79,7 +79,7 @@ function main() {
         console.log(`Restored ${sourcePath} from cache`);
     }
 
-    function afterRun(code) {
+    function afterRun(code:number) {
         if (code) {
             console.log(`pcache command for generating files failed with exit status: ${code}`)
         }
@@ -93,7 +93,7 @@ function main() {
 
 }
 
-function getUserHome() {
+function getUserHome():string {
     return process.env.HOME || process.env.USERPROFILE;
 }
 
