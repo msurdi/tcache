@@ -41,11 +41,14 @@ function main() {
 
     // Check if the path already exists
     fs.open(sourcePath, 'r', undefined, (error, fd) => {
+        if (!error) fs.close(fd);
         if ((error && error['code'] === 'ENOENT') || force) {
+            // restore from cache if it is already there
             cache.has(key, (exists) => {
                 if (exists) {
                     cache.get(key, sourcePath, afterCacheGet);
                 }
+                // Else run the command that is supposed to generate it
                 else if (command) {
                     run(command, afterRun);
                 }
@@ -61,22 +64,31 @@ function main() {
             env: process.env,
             shell: process.env['SHELL'],
         };
-        child_process.exec(command, options, afterRun)
+        let p = child_process.spawn(process.env['SHELL'], ['-c', command], options);
+        p.stdout.pipe(process.stdout);
+        p.stderr.pipe(process.stderr);
+        p.on('exit', afterRun);
+        // Wait forever for child process
+        setInterval(()=> {
+            // Maybe implement a timeout feature and kill the subprocess?
+        }, 1000);
+
     }
 
     function afterCacheGet() {
         console.log(`Restored ${sourcePath} from cache`);
     }
 
-    function afterRun(error:Error, stdout:Buffer, stderr:Buffer) {
-        if (error) {
-            console.log(`pcache command for generating files failed with exit status: ${error['code']}`)
+    function afterRun(code) {
+        if (code) {
+            console.log(`pcache command for generating files failed with exit status: ${code}`)
         }
         cache.set(key, sourcePath, afterCacheSet);
-    }
 
-    function afterCacheSet() {
-        console.log(`Saved ${sourcePath} to cache`);
+        function afterCacheSet() {
+            console.log(`Saved ${sourcePath} to cache`);
+            process.exit(code);
+        }
     }
 
 }
