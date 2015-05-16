@@ -5,6 +5,7 @@ import program = require('commander');
 import fs = require('fs');
 import path = require('path');
 import child_process = require('child_process');
+import cachelib = require('./lib/cache');
 
 function loadMetadata():any {
     var appDir = path.dirname(require.main.filename);
@@ -15,8 +16,10 @@ program
     .version(loadMetadata().version)
     .usage('[options] -- <command>')
     .option('-p --path <path>', 'Path to cache', '.')
+    .option('-f --force', 'Force restore from cache overwritting any existing files in path')
     .option('-k --key <key>', 'Cache key. By default, the path basename is used')
-    .option('-c --cache-dir <path>', 'Path to use for cache storage', '~/.pcache')
+    .option('-c --cache-dir <path>', 'Path to use for cache storage. Defaults to ~/.pcache',
+    path.join(getUserHome(), '.pcache'))
     .option('-r --remove-older <time>', 'Remove cache entries older than <time>. Set to 0 to cache forever', 0)
     .on('--help', function () {
         console.log('  Examples:');
@@ -25,65 +28,30 @@ program
         console.log('');
     });
 
-class Cache {
-    constructor(private dir:string) {
-
-    }
-
-    set(key:string, sourceDir:string, cb?:Function):void {
-        console.log('Saving to cache');
-        return callback(cb);
-
-    }
-
-    get(key:string, targetDir:string, cb?:Function):void {
-        console.log('Loading from cache');
-        return callback(cb);
-
-    }
-
-    del(key:string, cb?:Function):void {
-        console.log('Deleting from cache');
-        return callback(cb);
-    }
-
-    list(cb?:((results:string) => void)) {
-        return callback(cb);
-
-    }
-
-    has(key:string, cb?:((exists:boolean) => void)) {
-        console.log('has cache?');
-        return callback(cb);
-    }
-
-}
-
-function callback(fn:Function, ...args:any[]) {
-    if (typeof fn === 'function') {
-        return fn.apply(null, Array.prototype.slice.call(arguments, 1))
-    }
-}
-
 
 function main() {
     program.parse(process.argv);
-    debugger;
     let opts = program.opts();
     let cacheDir = opts['cacheDir'].toString();
     let sourcePath = opts['path'].toString();
+    let force:boolean = opts['force'];
     let key = opts['key'] ? opts['key'].toString() : path.basename(sourcePath.toString());
     let command = program.args ? program.args.join(' ') : undefined;
-    let cache = new Cache(cacheDir);
+    let cache = new cachelib.Cache(cacheDir);
 
-    cache.has(key, (exists) => {
-        if (exists) {
-            cache.get(key, sourcePath, afterCacheGet);
-        }
-        else {
-            if (command) {
-                run(command, afterRun);
-            }
+    // Check if the path already exists
+    fs.open(sourcePath, 'r', undefined, (error, fd) => {
+        if ((error && error['code'] === 'ENOENT') || force) {
+            cache.has(key, (exists) => {
+                if (exists) {
+                    cache.get(key, sourcePath, afterCacheGet);
+                }
+                else if (command) {
+                    run(command, afterRun);
+                }
+            });
+        } else {
+            console.log("Nothing to do");
         }
     });
 
@@ -113,5 +81,8 @@ function main() {
 
 }
 
+function getUserHome() {
+    return process.env.HOME || process.env.USERPROFILE;
+}
 
 main();
