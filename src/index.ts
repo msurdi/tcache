@@ -6,20 +6,17 @@ import fs = require('fs');
 import path = require('path');
 import child_process = require('child_process');
 import cachelib = require('./lib/cache');
+import util = require('./lib/util');
 
-function loadMetadata():any {
-    var appDir = path.dirname(require.main.filename);
-    return JSON.parse(fs.readFileSync(path.join(appDir, '../package.json'), 'utf8'));
-}
 
 program
-    .version(loadMetadata().version)
+    .version(util.loadMetadata().version)
     .usage('[options] -- <command>')
     .option('-p --path <path>', 'Path to cache', '.')
     .option('-f --force', 'Force restore from cache overwritting any existing files in path')
     .option('-k --key <key>', 'Cache key. By default, the path basename is used')
     .option('-c --cache-dir <path>', 'Path to use for cache storage. Defaults to ~/.pcache',
-    path.join(getUserHome(), '.pcache'))
+    path.join(util.getUserHome(), '.pcache'))
     .option('-r --remove-older <time>', 'Remove cache entries older than <time>. Set to 0 to cache forever', 0)
     .on('--help', function () {
         console.log('  Examples:');
@@ -91,10 +88,6 @@ function main() {
         }
     }
 
-}
-
-function getUserHome():string {
-    return process.env['HOME'] || process.env['USERPROFILE'];
 }
 
 main();
