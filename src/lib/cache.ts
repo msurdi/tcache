@@ -1,7 +1,7 @@
 /// <reference path="../typings/all.d.ts" />
 import fs = require('fs-extra');
 import path = require('path');
-import expandHomeDir = require('expand-home-dir');
+import util = require('./util');
 
 export class Cache {
     constructor(private dir:string) {
@@ -10,7 +10,7 @@ export class Cache {
     set(key:string, sourceDir:string, cb?:Function):void {
         let targetDir = path.join(this.dir, key);
         fs.copy(sourceDir, targetDir, (error) => {
-            return callback(cb, error);
+            return util.callback(cb, error);
         });
 
 
@@ -19,7 +19,7 @@ export class Cache {
     get(key:string, targetDir:string, cb?:Function):void {
         let sourceDir = path.join(this.dir, key);
         fs.copy(sourceDir, targetDir, (error) => {
-            return callback(cb, error);
+            return util.callback(cb, error);
         });
 
     }
@@ -27,7 +27,7 @@ export class Cache {
     del(key:string, cb?:Function):void {
         let dir = path.join(this.dir, key);
         fs.rmdir(dir, (error) => {
-            return callback(cb, error);
+            return util.callback(cb, error);
         });
     }
 
@@ -40,14 +40,9 @@ export class Cache {
                 exists = false;
             }
             if (!error) fs.close(fd);
-            return callback(cb, exists);
+            return util.callback(cb, exists);
         });
     }
 
 }
 
-function callback(fn:Function, ...args:any[]) {
-    if (typeof fn === 'function') {
-        return fn.apply(null, Array.prototype.slice.call(arguments, 1))
-    }
-}

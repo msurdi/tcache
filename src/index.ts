@@ -5,9 +5,9 @@ import program = require('commander');
 import fs = require('fs');
 import path = require('path');
 import child_process = require('child_process');
+import parseDuration = require('parse-duration');
 import cachelib = require('./lib/cache');
 import util = require('./lib/util');
-
 
 program
     .version(util.loadMetadata().version)
@@ -17,7 +17,7 @@ program
     .option('-k --key <key>', 'Cache key. By default, the path basename is used')
     .option('-c --cache-dir <path>', 'Path to use for cache storage. Defaults to ~/.pcache',
     path.join(util.getUserHome(), '.pcache'))
-    .option('-r --remove-older <time>', 'Remove cache entries older than <time>. Set to 0 to cache forever', 0)
+    .option('-r --remove-older <time>', 'Remove cache entries older than <time>. Set to 0 to cache forever', parseDuration)
     .on('--help', function () {
         console.log('  Examples:');
         console.log('');
@@ -35,6 +35,11 @@ function main() {
     let key = opts['key'] ? opts['key'].toString() : path.basename(sourcePath.toString());
     let command = program.args ? program.args.join(' ') : undefined;
     let cache = new cachelib.Cache(cacheDir);
+    let removeOlder = opts['removeOlder'];
+
+    if (removeOlder) {
+        util.cleanup(cacheDir, removeOlder);
+    }
 
     // Check if the path already exists
     fs.open(sourcePath, 'r', undefined, (error, fd) => {
@@ -59,16 +64,11 @@ function main() {
         console.log('Running command');
         let options = {
             env: process.env,
-            shell: process.env['SHELL'],
         };
         let p = child_process.spawn(process.env['SHELL'], ['-c', command], options);
         p.stdout.pipe(process.stdout);
         p.stderr.pipe(process.stderr);
         p.on('exit', cb);
-        // Wait forever for child process
-        setInterval(()=> {
-            // Maybe implement a timeout feature and kill the subprocess?
-        }, 1000);
 
     }
 
@@ -77,14 +77,19 @@ function main() {
     }
 
     function afterRun(code:number) {
-        if (code) {
+        if (code === 0) {
+            cache.set(key, sourcePath, afterCacheSet);
+        } else {
             console.log(`pcache command for generating files failed with exit status: ${code}`)
         }
-        cache.set(key, sourcePath, afterCacheSet);
+
+        // After all callbacks are done, exit with the command exit code
+        process.on('exit', () => {
+            process.exit(code)
+        });
 
         function afterCacheSet() {
             console.log(`Saved ${sourcePath} to cache`);
-            process.exit(code);
         }
     }
 
