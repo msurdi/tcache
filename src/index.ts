@@ -25,9 +25,9 @@ program
         console.log('');
     });
 
-
-function main() {
+export function main() {
     program.parse(process.argv);
+
     let opts = program.opts();
     let cacheDir = opts['cacheDir'].toString();
     let sourcePath = opts['path'].toString();
@@ -38,61 +38,73 @@ function main() {
     let removeOlder = opts['removeOlder'];
 
     if (removeOlder) {
-        util.cleanup(cacheDir, removeOlder);
+        util.cleanup(cacheDir, removeOlder, afterCleanup);
+    } else {
+        afterCleanup(null, []);
     }
 
-    // Check if the path already exists
-    fs.open(sourcePath, 'r', undefined, (error, fd) => {
-        if (!error) fs.close(fd);
-        if ((error && error['code'] === 'ENOENT') || force) {
-            // restore from cache if it is already there
-            cache.has(key, (exists) => {
-                if (exists) {
-                    cache.get(key, sourcePath, afterCacheGet);
-                }
-                // Else run the command that is supposed to generate it
-                else if (command) {
-                    run(command, afterRun);
-                }
-            });
+    function afterCleanup(error:Error, cleaned:string[]) {
+        if (error) return terminate(error);
+        checkSource(sourcePath, afterCheckSource);
+    }
+
+    function afterCheckSource(error:Error, exists:boolean) {
+        if (error) return terminate(error);
+        if (!exists || force) {
+            cache.get(key, sourcePath, afterCacheGet);
         } else {
-            console.log("Nothing to do");
+            console.log('Nothing to do');
         }
-    });
-
-    function run(command, cb?:(code:number) =>void) {
-        console.log('Running command');
-        let options = {
-            env: process.env,
-        };
-        let p = child_process.spawn(process.env['SHELL'], ['-c', command], options);
-        p.stdout.pipe(process.stdout);
-        p.stderr.pipe(process.stderr);
-        p.on('exit', cb);
-
     }
 
-    function afterCacheGet() {
-        console.log(`Restored ${sourcePath} from cache`);
+    function afterCacheGet(error:Error, restored:boolean) {
+        if (error) return terminate(error);
+        if (!restored) {
+            run(command, afterRun);
+        }
     }
 
-    function afterRun(code:number) {
-        if (code === 0) {
-            cache.set(key, sourcePath, afterCacheSet);
-        } else {
-            console.log(`pcache command for generating files failed with exit status: ${code}`)
-        }
+    function afterRun(error:Error, code:number) {
+        console.log(`exit code: ${code}`);
+        if (error) return terminate(error);
+        cache.set(key, sourcePath, afterCacheSet);
+    }
 
-        // After all callbacks are done, exit with the command exit code
-        process.on('exit', () => {
-            process.exit(code)
-        });
-
-        function afterCacheSet() {
-            console.log(`Saved ${sourcePath} to cache`);
-        }
+    function afterCacheSet(error:Error) {
+        if (error) return terminate(error);
+        console.log('Cache updated');
     }
 
 }
 
-main();
+function terminate(error:Error) {
+    console.log(error.message);
+}
+
+
+function checkSource(path:string, cb?:Function) {
+    fs.open(path, 'r', undefined, (error, fd) => {
+        if (!error) fs.close(fd);
+        if ((error && error['code'] === 'ENOENT')) {
+            return util.callback(cb, null, false);
+        } else if (error) {
+            return util.callback(cb, error);
+        } else {
+            return util.callback(cb, error, true);
+        }
+    });
+}
+
+
+function run(command, cb?:Function) {
+    console.log('Running command');
+    let options = {
+        env: process.env,
+    };
+    let p = child_process.spawn(process.env['SHELL'], ['-c', command], options);
+    p.stdout.pipe(process.stdout);
+    p.stderr.pipe(process.stderr);
+    p.on('exit', (code) => {
+        util.callback(cb, null, code);
+    });
+}

@@ -3,6 +3,8 @@ import fs = require('fs-extra');
 import path = require('path');
 import util = require('./util');
 
+const callback = util.callback;
+
 export class Cache {
     constructor(private dir:string) {
     }
@@ -10,7 +12,7 @@ export class Cache {
     set(key:string, sourceDir:string, cb?:Function):void {
         let targetDir = path.join(this.dir, key);
         fs.copy(sourceDir, targetDir, (error) => {
-            return util.callback(cb, error);
+            return callback(cb, error);
         });
 
 
@@ -19,7 +21,13 @@ export class Cache {
     get(key:string, targetDir:string, cb?:Function):void {
         let sourceDir = path.join(this.dir, key);
         fs.copy(sourceDir, targetDir, (error) => {
-            return util.callback(cb, error);
+            if (error && error['code'] == 'ENOENT') {
+                return callback(cb, null, false);
+            } else if (error) {
+                return callback(cb, error);
+            } else {
+                return callback(cb, error, true);
+            }
         });
 
     }
@@ -27,7 +35,7 @@ export class Cache {
     del(key:string, cb?:Function):void {
         let dir = path.join(this.dir, key);
         fs.rmdir(dir, (error) => {
-            return util.callback(cb, error);
+            return callback(cb, error);
         });
     }
 
@@ -35,12 +43,12 @@ export class Cache {
     has(key:string, cb?:((exists:boolean) => void)) {
         let dir = path.join(this.dir, key);
         fs.open(dir, 'r', undefined, (error, fd) => {
+            if (!error) fs.close(fd);
             let exists = true;
             if (error && error['code'] === 'ENOENT') {
                 exists = false;
             }
-            if (!error) fs.close(fd);
-            return util.callback(cb, exists);
+            return callback(cb, exists);
         });
     }
 
