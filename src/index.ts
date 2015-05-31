@@ -50,7 +50,9 @@ export function main() {
 
     function afterCheckSource(error:Error, exists:boolean) {
         if (error) return terminate(error);
-        if (!exists || force) {
+        if (force) {
+            run(command, afterRun);
+        } else if (!exists) {
             cache.get(key, sourcePath, afterCacheGet);
         } else {
             console.log('Nothing to do');
