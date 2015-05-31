@@ -5,7 +5,6 @@ import chai = require('chai');
 import spawn = require('child_process');
 import tmp = require('tmp');
 import path = require('path');
-import ncp = require('ncp');
 import fs = require('fs-extra');
 
 const BIN = path.join(__dirname, '../../../bin/tcache');
