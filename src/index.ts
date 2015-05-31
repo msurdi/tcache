@@ -13,7 +13,7 @@ program
     .version(util.loadMetadata().version)
     .usage('[options] -- <command>')
     .option('-p --path <path>', 'Path to cache', '.')
-    .option('-f --force', 'Force restore from cache overwritting any existing files in path')
+    .option('-f --force', 'Force execution of command and cache update')
     .option('-k --key <key>', 'Cache key. By default, the path basename is used')
     .option('-c --cache-dir <path>', 'Path to use for cache storage. Defaults to ~/.pcache',
     path.join(util.getUserHome(), '.pcache'))
