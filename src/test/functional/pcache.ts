@@ -141,6 +141,7 @@ describe("When there are no cache entries", () => {
             setTimeout(()=> { // Set a timeout for at least 10ms
                 // Remove cache entries older than 1ms;
                 runOnWorkDir(`-p this -r 1ms -- ${CMD}`, (err, code, stdout) => {
+                    console.log(stdout);
                     assert.equal(code, 0);
                     assert.include(stdout, 'COMMAND RUN');
                     done();
@@ -148,8 +149,6 @@ describe("When there are no cache entries", () => {
             }, 10);
         });
     });
-
-
 });
 
 

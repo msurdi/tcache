@@ -45,6 +45,9 @@ export function main() {
 
     function afterCleanup(error:Error, cleaned:string[]) {
         if (error) return terminate(error);
+        cleaned.forEach((f) => {
+            console.log(`Removed ${f} from cache`);
+        });
         checkSource(sourcePath, afterCheckSource);
     }
 

@@ -21,8 +21,6 @@ export class Cache {
         fs.copy(sourceDir, targetDir, (error) => {
             return callback(cb, error);
         });
-
-
     }
 
     get(key:string, targetDir:string, cb?:Function):void {
@@ -36,12 +34,11 @@ export class Cache {
                 return callback(cb, error, true);
             }
         });
-
     }
 
     del(key:string, cb?:Function):void {
         let dir = path.join(this.dir, key);
-        fs.rmdir(dir, (error) => {
+        fs.remove(dir, (error) => {
             return callback(cb, error);
         });
     }
@@ -54,10 +51,10 @@ export class Cache {
      * @param cb - Callback
      */
     purge(timeout:number, cb?:Function):void {
+        var self = this;
         fs.readdir(this.dir, (error, files:string[]) => {
             if (error) return callback(cb, error);
             let stats:StatResult[] = [];
-            let statCount = 0;
             for (let file of files) {
                 let filePath = path.join(this.dir, file);
                 statFile(filePath);
@@ -66,9 +63,8 @@ export class Cache {
             function statFile(filePath:string) {
                 let afterNStats = _.after(files.length, afterStats);
                 fs.stat(filePath, (error, stat) => {
-                    statCount += 1;
                     if (error) {
-                        console.log(`Error reading ${filePath}: ${error.message}`);
+                        console.warn(`Error reading ${filePath}: ${error.message}`);
                     }
                     stats.push({path: filePath, stat: stat});
                     afterNStats(stats);
@@ -81,17 +77,19 @@ export class Cache {
                     return now.getTime() - stat.stat.ctime.getTime() > timeout;
                 });
                 toRemove.forEach((f) => {
+                    let removed = [];
                     let afterNRemove = _.after(toRemove.length, afterRemove);
-                    fs.remove(f.path, (error) => {
-                        if (error) return afterRemove(error);
-                        console.log(`Removed ${f.path} from cache`);
-                        afterNRemove(null);
+                    let key = path.basename(f.path);
+                    self.del(key, (error:Error) => {
+                        if (error) return afterRemove(error, []);
+                        removed.push(key);
+                        afterNRemove(null, removed);
                     });
                 });
             }
 
-            function afterRemove(err) {
-                return callback(cb);
+            function afterRemove(error:Error, removed:string[]) {
+                return callback(cb, error, removed);
             }
         });
     }
