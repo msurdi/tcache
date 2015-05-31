@@ -8,7 +8,7 @@ import path = require('path');
 import ncp = require('ncp');
 import fs = require('fs-extra');
 
-const BIN = path.join(__dirname, '../../../bin/pcache');
+const BIN = path.join(__dirname, '../../../bin/tcache');
 const TEST_FILE = 'this/is/a/test.txt';
 const CMD = `( mkdir -p this/is/a && touch ${TEST_FILE} && echo 'COMMAND RUN' )`;
 

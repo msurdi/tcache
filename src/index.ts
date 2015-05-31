@@ -15,13 +15,13 @@ program
     .option('-p --path <path>', 'Path to cache', '.')
     .option('-f --force', 'Force execution of command and cache update')
     .option('-k --key <key>', 'Cache key. By default, the path basename is used')
-    .option('-c --cache-dir <path>', 'Path to use for cache storage. Defaults to ~/.pcache',
-    path.join(util.getUserHome(), '.pcache'))
+    .option('-c --cache-dir <path>', 'Path to use for cache storage. Defaults to ~/.tcache',
+    path.join(util.getUserHome(), '.tcache'))
     .option('-r --remove-older <time>', 'Remove cache entries older than <time>. Set to 0 to cache forever', parseDuration)
     .on('--help', function () {
         console.log('  Examples:');
         console.log('');
-        console.log('    $ pcache -p ./node_modules -k $(md5 -q package.json) -- npm install');
+        console.log('    $ tcache -p ./node_modules -k $(md5 -q package.json) -- npm install');
         console.log('');
     });
 

@@ -1,10 +1,10 @@
 {
-  "name": "pcache",
+  "name": "tcache",
   "version": "0.1.0",
-  "description": "A files/directories caching command line tool",
+  "description": "A directory tree caching command line tool",
   "main": "index.js",
   "bin": {
-    "tagit": "./bin/pcache"
+    "tagit": "./bin/tcache"
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha dist/test/ --recursive",
@@ -27,10 +27,10 @@
   "license": "BSD",
   "repository": {
     "type": "git",
-    "url": "https://github.com/msurdi/pcache"
+    "url": "https://github.com/msurdi/tcache"
   },
   "bugs": {
-    "url": "https://github.com/msurdi/pcache/issues"
+    "url": "https://github.com/msurdi/tcache/issues"
   },
   "dependencies": {
     "commander": "^2.8.1",
