@@ -38,7 +38,7 @@ export function main() {
     let removeOlder = opts['removeOlder'];
 
     if (removeOlder) {
-        util.cleanup(cacheDir, removeOlder, afterCleanup);
+        cache.purge(removeOlder, afterCleanup);
     } else {
         afterCleanup(null, []);
     }
