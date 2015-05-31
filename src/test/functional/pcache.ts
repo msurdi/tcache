@@ -10,7 +10,7 @@ import fs = require('fs-extra');
 
 const BIN = path.join(__dirname, '../../../bin/pcache');
 const TEST_FILE = 'this/is/a/test.txt';
-const CMD = `( mkdir -p this/is/a && touch ${TEST_FILE} )`;
+const CMD = `( mkdir -p this/is/a && touch ${TEST_FILE} && echo 'COMMAND RUN' )`;
 
 const assert = chai.assert;
 
@@ -84,7 +84,7 @@ describe("When there are no cache entries", () => {
         fs.removeSync(workDir);
     });
 
-    it('Should run the command and save the result to cache', (done) => {
+    it('Should run the command and save the result to cache with default key', (done) => {
         runOnWorkDir(`-p this -- ${CMD}`, (err, code, stdout) => {
             assert.equal(code, 0);
             let createdFileStat = fs.statSync(path.join(filesDir, TEST_FILE));
@@ -94,6 +94,61 @@ describe("When there are no cache entries", () => {
             done();
         });
     });
+
+    it('Should run the command and save the result to cache with a specific key', (done) => {
+        runOnWorkDir(`-p this -k 123abcd -- ${CMD}`, (err, code, stdout) => {
+            assert.equal(code, 0);
+            assert.include(stdout, 'COMMAND RUN');
+            let createdFileStat = fs.statSync(path.join(filesDir, TEST_FILE));
+            assert.isTrue(createdFileStat.isFile());
+            let cachedKeyStat = fs.statSync(path.join(cacheDir, '123abcd'));
+            assert.isTrue(cachedKeyStat.isDirectory());
+            let cachedFileStat = fs.statSync(path.join(cacheDir, '123abcd/is/a/test.txt'));
+            assert.isTrue(cachedFileStat.isFile());
+            done();
+        });
+    });
+
+
+    describe('When the file is already cached', () => {
+        beforeEach((done) => {
+            // Populate cache, remove generated files
+            runOnWorkDir(`-p this -- ${CMD}`, () => {
+                fs.removeSync(path.join(filesDir, 'this'));
+                done();
+            });
+        });
+
+        it('Should not run command and path should be restored from cache', (done) => {
+            runOnWorkDir(`-p this -- ${CMD}`, (err, code, stdout) => {
+                assert.equal(code, 0);
+                assert.notInclude(stdout, 'COMMAND RUN');
+                let pathStat = fs.statSync(path.join(filesDir, TEST_FILE));
+                assert.isTrue(pathStat.isFile());
+                done();
+            });
+        });
+
+        it('Should run the command and update the cache if --force is specified', (done) => {
+            runOnWorkDir(`-p this -f -- ${CMD}`, (err, code, stdout) => {
+                assert.equal(code, 0);
+                assert.include(stdout, 'COMMAND RUN');
+                done();
+            });
+        });
+
+        it('Should remove old cache entry and run the command if -r is specified', (done) => {
+            setTimeout(()=> { // Set a timeout for at least 10ms
+                // Remove cache entries older than 1ms;
+                runOnWorkDir(`-p this -r 1ms -- ${CMD}`, (err, code, stdout) => {
+                    assert.equal(code, 0);
+                    assert.include(stdout, 'COMMAND RUN');
+                    done();
+                });
+            }, 10);
+        });
+    });
+
 
 });
 
