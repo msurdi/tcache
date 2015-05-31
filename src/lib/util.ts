@@ -65,8 +65,8 @@ export function cleanup(dir:string, removeOlder:number, cb?:Function):void {
                     if (error) return afterRemove(error);
                     console.log(`Removed ${f.path} from cache`);
                     afterNRemove(null);
-                })
-            })
+                });
+            });
         }
 
         function afterRemove(err) {
