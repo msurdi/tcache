@@ -15,8 +15,8 @@ In the following example, the command `pip install -r requirements.txt` will be 
 if one of the following conditions is true:
 
   - It is the first time you run the command, thus the _env_ directory doesn't exist yet
-  - The contents of requirements.txt has changed since the last time it was run
-  - The cached version of _env_ is older than 1 day
+  - The contents of requirements.txt have changed since the last time the command was run
+  - The cached version of _env_ is older than 1 daythe command was run
 
 
         $ tcache -p env -k $(md5 -q requirements.txt) -r 1d -- pip install -r requirements.txt --root=env
