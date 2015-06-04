@@ -4,7 +4,7 @@
   "description": "A directory tree caching command line tool",
   "main": "index.js",
   "bin": {
-    "tagit": "./bin/tcache"
+    "tcache": "./bin/tcache"
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha dist/test/ --recursive",
