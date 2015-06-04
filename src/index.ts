@@ -23,6 +23,8 @@ program
         console.log('');
         console.log('    $ tcache -p ./node_modules -k $(md5 -q package.json) -- npm install');
         console.log('');
+        console.log('    $ tcache -p env -k $(md5 -q requirements.txt) -r 1d -- pip install -r requirements.txt --root=env');
+        console.log('');
     });
 
 export function main() {

@@ -20,6 +20,12 @@ if one of the following conditions is true:
 
 
         $ tcache -p env -k $(md5 -q requirements.txt) -r 1d -- pip install -r requirements.txt --root=env
+
+
+Here is a similar example, but for npm:
+
+        
+        $ tcache -p ./node_modules -k $(md5 -q package.json) -- npm install
        
         
 By default cached directory trees are stored in $HOME/.tcache, this can be changed with the -c option.
