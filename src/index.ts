@@ -68,6 +68,8 @@ export function main() {
         if (error) return terminate(error);
         if (!restored) {
             run(command, afterRun);
+        } else {
+            console.log('Restored from cache');
         }
     }
 
