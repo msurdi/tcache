@@ -1,6 +1,6 @@
 {
   "name": "tcache",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "A directory tree caching command line tool",
   "main": "index.js",
   "bin": {
