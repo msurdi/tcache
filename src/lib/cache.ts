@@ -55,6 +55,11 @@ export class Cache {
         fs.readdir(this.dir, (error, files:string[]) => {
             if (error) return callback(cb, error);
             let stats:StatResult[] = [];
+
+            if (files.length == 0 ) {
+                return callback(cb, null, []);
+            }
+
             for (let file of files) {
                 let filePath = path.join(this.dir, file);
                 statFile(filePath);
@@ -87,7 +92,6 @@ export class Cache {
                     });
                 });
             }
-
             function afterRemove(error:Error, removed:string[]) {
                 return callback(cb, error, removed);
             }
