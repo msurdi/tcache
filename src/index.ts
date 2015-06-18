@@ -108,7 +108,7 @@ function run(command, cb?:Function) {
     let options = {
         env: process.env,
     };
-    let p = child_process.spawn(process.env['SHELL'], ['-c', command], options);
+    let p = child_process.spawn(process.env['SHELL'] || 'sh', ['-c', command], options);
     p.stdout.pipe(process.stdout);
     p.stderr.pipe(process.stderr);
     p.on('exit', (code) => {
