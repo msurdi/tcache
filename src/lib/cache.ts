@@ -87,9 +87,15 @@ export class Cache {
                 let toRemove = stats.filter((stat)=> {
                     return now.getTime() - stat.stat.ctime.getTime() > timeout;
                 });
+
+                // No files to remove is ok.
+                if (toRemove.length === 0) {
+                    return callback(cb, null, []);
+                }
+
+                let afterNRemove = _.after(toRemove.length, afterRemove);
                 toRemove.forEach((f) => {
                     let removed = [];
-                    let afterNRemove = _.after(toRemove.length, afterRemove);
                     let key = path.basename(f.path);
                     self.del(key, (error:Error) => {
                         if (error) return afterRemove(error, []);
