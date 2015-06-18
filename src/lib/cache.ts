@@ -52,11 +52,17 @@ export class Cache {
      */
     purge(timeout:number, cb?:Function):void {
         var self = this;
-        fs.readdir(this.dir, (error, files:string[]) => {
-            if (error) return callback(cb, error);
+        fs.readdir(this.dir, (error:Error, files:string[]) => {
+            if (error) {
+                if (error['code'] == 'ENOENT') {
+                    // Nothing to cleanup is ok if the cache dir doesn't exist
+                    return callback(cb, null, [])
+                }
+                return callback(cb, error);
+            }
             let stats:StatResult[] = [];
 
-            if (files.length == 0 ) {
+            if (files.length == 0) {
                 return callback(cb, null, []);
             }
 
@@ -92,6 +98,7 @@ export class Cache {
                     });
                 });
             }
+
             function afterRemove(error:Error, removed:string[]) {
                 return callback(cb, error, removed);
             }
