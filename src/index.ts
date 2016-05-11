@@ -74,7 +74,7 @@ export function main() {
     }
 
     function afterRun(error:Error, code:number) {
-        console.log(`exit code: ${code}`);
+        if (code) return terminate({name: 'RunCommandError', message: `There was an error running the command. Exit code: ${code}`});
         if (error) return terminate(error);
         cache.set(key, sourcePath, afterCacheSet);
     }
