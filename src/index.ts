@@ -88,6 +88,7 @@ export function main() {
 
 function terminate(error:Error) {
     console.log(error.message);
+    process.exit(1);
 }
 
 

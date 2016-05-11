@@ -86,6 +86,7 @@ function main() {
 exports.main = main;
 function terminate(error) {
     console.log(error.message);
+    process.exit(1);
 }
 function checkSource(path, cb) {
     fs.open(path, 'r', undefined, function (error, fd) {
