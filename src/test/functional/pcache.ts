@@ -10,6 +10,7 @@ import fs = require('fs-extra');
 const BIN = path.join(__dirname, '../../../bin/tcache');
 const TEST_FILE = 'this/is/a/test.txt';
 const CMD = `( mkdir -p this/is/a && touch ${TEST_FILE} && echo 'COMMAND RUN' )`;
+const ERROR_CMD = `ls asdasdasf`;
 
 const assert = chai.assert;
 
@@ -108,6 +109,14 @@ describe("When there are no cache entries", () => {
         });
     });
 
+    it('Should run the command and exit with error code on error', (done) => {
+        runOnWorkDir(`-p this -k 123abcd -- ${ERROR_CMD}`, (err, code, stdout) => {
+            assert.notEqual(code, 0);
+            assert.isFalse(fs.existsSync(path.join(cacheDir, '123abcd')));
+            done();
+        });
+    });
+
 
     describe('When the file is already cached', () => {
         beforeEach((done) => {
@@ -149,7 +158,3 @@ describe("When there are no cache entries", () => {
         });
     });
 });
-
-
-
-
